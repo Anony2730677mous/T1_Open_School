@@ -4,10 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.t1.java.demo.model.Client;
+import ru.t1.java.demo.model.DataSourceErrorLog;
+import ru.t1.java.demo.repository.DataSourceErrorLogRepository;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Objects.isNull;
@@ -17,6 +21,8 @@ import static java.util.Objects.isNull;
 @Component
 @Order(0)
 public class LoggingAspect {
+    @Autowired
+    DataSourceErrorLogRepository logRepository;
 
     @Pointcut("within(ru.t1.java.demo.*)")
     public void loggingMethods() {
@@ -78,6 +84,12 @@ public class LoggingAspect {
                 joinPoint.getSignature().toShortString());
         log.info("Произошла ошибка: ", e);
 
+    }
+    @AfterThrowing(pointcut = "@annotation(LoggableException)", throwing = "e")
+    @Order(10)
+    public void dataSourceLog(JoinPoint joinPoint, Exception e) {
+        logRepository.save(new DataSourceErrorLog(Arrays.toString(e.getStackTrace()), e.getMessage(),
+                joinPoint.getSignature().toShortString()));
     }
 
 }

@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MetricAspect {
 
     private static final AtomicLong START_TIME = new AtomicLong();
+    @Value("${track.time-limit-exceed}")
+    private long timeLimitExceed;
 
     @Before("@annotation(ru.t1.java.demo.aop.Track)")
     public void logExecTime(JoinPoint joinPoint) throws Throwable {
@@ -45,6 +48,23 @@ public class MetricAspect {
             log.info("Время исполнения: {} ms", (afterTime - beforeTime));
         }
 
+        return result;
+    }
+    @Around("@annotation(ru.t1.java.demo.aop.Track)")
+    public Object logExecTimeLimitExceed(ProceedingJoinPoint pJoinPoint) throws Throwable {
+        log.info("Вызов метода: {}", pJoinPoint.getSignature().toShortString());
+        long beforeTime = System.currentTimeMillis();
+        Object result;
+        try {
+            result = pJoinPoint.proceed();
+        } finally {
+            long afterTime = System.currentTimeMillis();
+            long executionTime = afterTime - beforeTime;
+
+            if (executionTime > timeLimitExceed) {
+                log.warn("Время исполнения метода {} превысило лимит: {} ms", pJoinPoint.getSignature().toShortString(), executionTime);
+            }
+        }
         return result;
     }
 
