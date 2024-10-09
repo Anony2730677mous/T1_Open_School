@@ -60,3 +60,42 @@ ALTER TABLE user_roles
 ALTER TABLE user_roles
     ADD CONSTRAINT fk_userol_on_user FOREIGN KEY (user_id) REFERENCES users (id);
 
+-- changeset 12
+CREATE TABLE client
+(
+    id       BIGINT NOT NULL,
+    first_name   VARCHAR(50),
+    last_name    VARCHAR(50),
+    middle_name  VARCHAR(50),
+    CONSTRAINT pk_client PRIMARY KEY (id)
+);
+
+-- changeset 13
+CREATE TABLE client_account(
+    id          BIGINT NOT NULL,
+    client_id   BIGINT NOT NULL,
+    account_type    VARCHAR(50) NOT NULL,
+    balance    DECIMAL(50, 2) NOT NULL,
+    CONSTRAINT pk_client_account PRIMARY KEY (id),
+    CONSTRAINT fk_client_account_client FOREIGN KEY (client_id) REFERENCES client(id)
+);
+
+
+-- changeset 14
+CREATE TABLE data_source_error_log
+(
+    id            BIGINT NOT NULL,
+    stack_trace      VARCHAR(256) NOT NULL,
+    message          VARCHAR(256) NOT NULL,
+    method_signature VARCHAR(256) NOT NULL,
+    CONSTRAINT pk_data_source_error_log PRIMARY KEY (id)
+);
+
+-- changeset 15
+CREATE TABLE time_limit_exceed_log
+(
+    id            BIGINT NOT NULL,
+    method_signature VARCHAR(256) NOT NULL,
+    execution_time BIGINT NOT NULL,
+    CONSTRAINT pk_time_limit_exceed_log PRIMARY KEY (id)
+);

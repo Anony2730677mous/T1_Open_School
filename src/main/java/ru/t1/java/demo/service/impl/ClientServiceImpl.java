@@ -8,7 +8,6 @@ import ru.t1.java.demo.exception.NotYetImplementedException;
 import ru.t1.java.demo.kafka.KafkaClientProducer;
 import ru.t1.java.demo.model.Client;
 import ru.t1.java.demo.model.dto.ClientDto;
-import ru.t1.java.demo.repository.ClientRepository;
 import ru.t1.java.demo.service.ClientService;
 
 import java.io.File;
