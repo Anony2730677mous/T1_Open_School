@@ -34,8 +34,19 @@ public class Client extends AbstractPersistable<Long> {
     @Column(name = "middle_name")
     private String middleName;
 
-    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<ClientAccount> accounts = new ArrayList<>();
+    public void addClientAccount(ClientAccount clientAccount) {
+        if (accounts == null) {
+            accounts = new ArrayList<>();
+        }
+        this.accounts.add(clientAccount);
+        clientAccount.setClient(this);
+    }
+    public void removeClientAccount(ClientAccount clientAccount) {
+        accounts.remove(clientAccount);
+        clientAccount.setClient(null);
+    }
 
     @Override
     public Long getId() {

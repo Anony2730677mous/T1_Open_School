@@ -36,7 +36,7 @@ public class TestDataLoaderService {
 
     @Transactional
     public void loadData() {
-        IntStream.range(0, 10).forEach(i -> {
+        IntStream.range(0, 100).forEach(i -> {
             Client client = new Client();
             client.setFirstName(faker.name().firstName());
             client.setLastName(faker.name().lastName());
@@ -45,11 +45,9 @@ public class TestDataLoaderService {
             client = clientRepository.save(client);
 
             ClientAccount clientAccount = new ClientAccount();
-            clientAccount.setClient(client);
             clientAccount.setClientAccountType(ClientAccountType.DEBIT);
             clientAccount.setBalance(BigDecimal.valueOf(faker.number().randomDouble(2, 100, 10000)));
-
-            clientAccountRepository.save(clientAccount);
+            client.addClientAccount(clientAccount);
 
             DataSourceErrorLog errorLog = new DataSourceErrorLog();
             errorLog.setStackTrace(faker.lorem().characters(250));

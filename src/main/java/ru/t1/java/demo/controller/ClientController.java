@@ -10,6 +10,7 @@ import ru.t1.java.demo.aop.HandlingResult;
 import ru.t1.java.demo.aop.LoggableException;
 import ru.t1.java.demo.kafka.KafkaClientProducer;
 import ru.t1.java.demo.model.Client;
+import ru.t1.java.demo.repository.ClientRepository;
 import ru.t1.java.demo.service.ClientService;
 import ru.t1.java.demo.util.ClientMapper;
 

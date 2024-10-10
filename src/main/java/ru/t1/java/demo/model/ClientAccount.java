@@ -27,7 +27,7 @@ import java.math.BigDecimal;
 public class ClientAccount extends AbstractPersistable<Long> {
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "client_id", nullable = false)
+    @JoinColumn(name = "client_id")
     private Client client;
 
     @Enumerated(EnumType.STRING)
