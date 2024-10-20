@@ -99,3 +99,7 @@ CREATE TABLE time_limit_exceed_log
     execution_time BIGINT NOT NULL,
     CONSTRAINT pk_time_limit_exceed_log PRIMARY KEY (id)
 );
+
+-- changeset 16
+ALTER TABLE transaction
+ADD COLUMN transaction_id VARCHAR(255) NOT NULL UNIQUE;

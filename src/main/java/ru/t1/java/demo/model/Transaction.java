@@ -24,4 +24,7 @@ public class Transaction extends AbstractPersistable<Long> {
     @Column(name = "account_id")
     private Long accountId;
 
+    @Column(name = "transaction_id", unique = true, nullable = false)
+    private String transactionId;
+
 }
