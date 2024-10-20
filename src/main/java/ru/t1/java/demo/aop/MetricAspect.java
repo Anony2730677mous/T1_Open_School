@@ -7,11 +7,16 @@ import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import ru.t1.java.demo.kafka.KafkaAspectMessageProducer;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Async
 @Slf4j
@@ -20,8 +25,14 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MetricAspect {
 
     private static final AtomicLong START_TIME = new AtomicLong();
+
     @Value("${track.time-limit-exceed}")
     private long timeLimitExceed;
+    @Value("${track.kafka.time-limit-exceed}")
+    private String kafkaTopic;
+
+    @Autowired
+    private KafkaAspectMessageProducer kafkaAspectMessageProducer;
 
     @Before("@annotation(ru.t1.java.demo.aop.Track)")
     public void logExecTime(JoinPoint joinPoint) throws Throwable {
@@ -63,6 +74,14 @@ public class MetricAspect {
 
             if (executionTime > timeLimitExceed) {
                 log.warn("Время исполнения метода {} превысило лимит: {} ms", pJoinPoint.getSignature().toShortString(), executionTime);
+                String methodName = pJoinPoint.getSignature().getName();
+                Object[] methodArguments = pJoinPoint.getArgs();
+                String methodArgumentsStrings = (methodArguments !=null) ? Arrays.stream(methodArguments)
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", ")): "Аргументы метода отсутствуют";
+                String kafkaMessage = String.format("Method: %s, Execution time: %d, Method arguments: %s",
+                        methodName, executionTime, methodArgumentsStrings);
+                kafkaAspectMessageProducer.sendAspectMessage(kafkaTopic, kafkaMessage);
             }
         }
         return result;
