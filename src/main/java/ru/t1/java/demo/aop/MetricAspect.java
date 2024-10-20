@@ -9,12 +9,14 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import ru.t1.java.demo.kafka.KafkaAspectMessageProducer;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -28,7 +30,7 @@ public class MetricAspect {
 
     @Value("${track.time-limit-exceed}")
     private long timeLimitExceed;
-    @Value("${track.kafka.time-limit-exceed}")
+    @Value("${t1.kafka.topic.time-limit-exceed-topic}")
     private String kafkaTopic;
 
     @Autowired
@@ -81,7 +83,20 @@ public class MetricAspect {
                         .collect(Collectors.joining(", ")): "Аргументы метода отсутствуют";
                 String kafkaMessage = String.format("Method: %s, Execution time: %d, Method arguments: %s",
                         methodName, executionTime, methodArgumentsStrings);
-                kafkaAspectMessageProducer.sendAspectMessage(kafkaTopic, kafkaMessage);
+                try {
+                    CompletableFuture<SendResult<String,String>> future = kafkaAspectMessageProducer.sendAspectMessage(kafkaTopic, kafkaMessage);
+                    future.whenCompleteAsync((futureResult, error) ->{
+                        if(error != null){
+                            log.error("Не удается отправить сообщение в Kafka: " + error.getMessage());
+                        }
+                        else {
+                            log.info("Сообщение в Kafka отправлено успешно {}", kafkaMessage);
+                        }
+                    });
+
+                } catch (Exception e) {
+                    log.error("Ошибка при отправке сообщения в Kafka в топик {}: {}", kafkaTopic, e.getMessage());
+                }
             }
         }
         return result;

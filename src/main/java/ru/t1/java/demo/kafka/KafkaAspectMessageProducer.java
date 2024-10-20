@@ -2,6 +2,9 @@ package ru.t1.java.demo.kafka;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
+
+import java.util.concurrent.CompletableFuture;
 
 public class KafkaAspectMessageProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -11,7 +14,7 @@ public class KafkaAspectMessageProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendAspectMessage(String topic, String message){
-        kafkaTemplate.send(topic, message);
+    public CompletableFuture<SendResult<String, String>> sendAspectMessage(String topic, String message){
+        return kafkaTemplate.send(topic, message);
     }
 }
