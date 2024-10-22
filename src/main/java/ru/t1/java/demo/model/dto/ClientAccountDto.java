@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.t1.java.demo.model.ClientAccountType;
 
 import java.math.BigDecimal;
 
@@ -14,16 +15,14 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
-public class TransactionDto {
-    @JsonProperty("amount")
-    private BigDecimal amount;
+public class ClientAccountDto {
 
-    @JsonProperty("client_Id")
+    @JsonProperty("client_id")
     private Long clientId;
 
-    @JsonProperty("account_Id")
-    private Long accountId;
+    @JsonProperty("account_type")
+    private ClientAccountType clientAccountType;
 
-    @JsonProperty("transaction_Id")
-    private String transactionId;
+    @JsonProperty("balance")
+    private BigDecimal balance;
 }

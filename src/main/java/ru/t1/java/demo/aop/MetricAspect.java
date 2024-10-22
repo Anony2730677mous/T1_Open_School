@@ -87,10 +87,10 @@ public class MetricAspect {
                     CompletableFuture<SendResult<String,String>> future = kafkaAspectMessageProducer.sendAspectMessage(kafkaTopic, kafkaMessage);
                     future.whenCompleteAsync((futureResult, error) ->{
                         if(error != null){
-                            log.error("Не удается отправить сообщение в Kafka: " + error.getMessage());
+                            log.error("Не удается отправить сообщение в Kafka: {}", error.getMessage());
                         }
                         else {
-                            log.info("Сообщение в Kafka отправлено успешно {}", kafkaMessage);
+                            log.info("Сообщение в Kafka отправлено успешно {}", futureResult.getRecordMetadata());
                         }
                     });
 

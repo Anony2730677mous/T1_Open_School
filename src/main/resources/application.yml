@@ -41,6 +41,7 @@ t1:
       client_id_registered: t1_demo_client_registered
       client_transactions: t1_demo_client_transactions
       time-limit-exceed-topic: t1_demo_metric_trace
+      client_new_account_registration: t1_demo_accounts
     listener:
       poll-timeout: 1000
 
