@@ -4,4 +4,6 @@ import ru.t1.java.demo.model.Transaction;
 
 public interface TransactionService {
     void saveTransaction(Transaction transaction);
+
+    void deleteTransaction(Transaction transaction);
 }

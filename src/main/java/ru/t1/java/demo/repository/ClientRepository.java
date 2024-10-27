@@ -19,4 +19,6 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     @Transactional(propagation = NOT_SUPPORTED)
     @Transaction
     Client findClientByFirstName(String firstName);
+
+    Client save(Client client);
 }

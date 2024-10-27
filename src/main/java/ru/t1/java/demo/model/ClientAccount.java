@@ -37,4 +37,8 @@ public class ClientAccount extends AbstractPersistable<Long> {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_state", nullable = false)
+    private ClientAccountState clientAccountState;
+
 }

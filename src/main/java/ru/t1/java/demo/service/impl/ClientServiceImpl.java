@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.t1.java.demo.exception.NotYetImplementedException;
 import ru.t1.java.demo.kafka.KafkaClientProducer;
 import ru.t1.java.demo.model.Client;
@@ -47,5 +48,11 @@ public class ClientServiceImpl implements ClientService {
         }
 
         return Arrays.asList(clients);
+    }
+
+    @Transactional
+    @Override
+    public Client createNewClient(Client entity) {
+        return repository.save(entity);
     }
 }

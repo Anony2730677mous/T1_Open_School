@@ -8,6 +8,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import ru.t1.java.demo.exception.TransactionException;
 import ru.t1.java.demo.mapper.TransactionMapper;
 import ru.t1.java.demo.model.Transaction;
 import ru.t1.java.demo.model.dto.TransactionDto;
@@ -26,11 +27,22 @@ public class KafkaTransactionConsumer {
     public void transactionListener(@Payload TransactionDto transactionDto,
                                     Acknowledgment ack,
                                     @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                    @Header(KafkaHeaders.RECEIVED_KEY) String key) {
+                                    @Header(KafkaHeaders.RECEIVED_KEY) String key,
+                                    @Header("action") String action) {
         try {
-            log.info("Сообщение получено из топика: {}, с ключом: {}", topic, key);
-            Transaction transaction = transactionMapper.toEntity(transactionDto);
-            transactionService.saveTransaction(transaction);
+            log.info("Сообщение получено из топика: {}, с ключом: {}, с действием: {}", topic, key, action);
+            if ("CREATE".equalsIgnoreCase(action)) {
+                Transaction transaction = transactionMapper.toEntity(transactionDto);
+                transactionService.saveTransaction(transaction);
+                log.info("Транзакция с id {} создана успешно", transaction.getTransactionId());
+            } else if ("DELETE".equalsIgnoreCase(action)) {
+                Transaction transaction = transactionMapper.toEntity(transactionDto);
+                transactionService.deleteTransaction(transaction);
+                log.info("Транзакция с id {} удалена успешно", transaction.getTransactionId());
+            } else {
+                log.warn("Неизвестное действие: {}", action);
+                throw new TransactionException("Неизвестное действие для транзакции");
+            }
         } catch (Exception e) {
             log.error("Произошла ошибка во время транзакции: " + e.getMessage());
         } finally {
