@@ -103,3 +103,17 @@ CREATE TABLE time_limit_exceed_log
 -- changeset 16
 ALTER TABLE transaction
 ADD COLUMN transaction_id VARCHAR(255) NOT NULL UNIQUE;
+
+-- changeset 17
+CREATE TABLE correction_transaction (
+    id              BIGINT NOT NULL,
+    amount          DECIMAL(19, 2),
+    client_id       BIGINT,
+    account_id BIGINT,
+    transaction_id  VARCHAR(255) NOT NULL,
+    CONSTRAINT pk_correction_transaction PRIMARY KEY (id)
+);
+-- changeset 18
+ALTER TABLE transaction
+ADD COLUMN account_id BIGINT;
+

@@ -54,7 +54,7 @@ public class ClientController {
     используется кебаб-кейс в написании url
      */
     @PostMapping("/create-new-client")
-    public ResponseEntity<ClientDto> createNewClient(@RequestBody ClientDto clientDto){
+    public ResponseEntity<ClientDto> createNewClient(@RequestBody ClientDto clientDto) {
         ClientDto responseEntity = clientMapper.toDto(clientService
                 .createNewClient(clientMapper.toEntity(clientDto)));
         log.info("Создан новый клиент");

@@ -17,16 +17,17 @@ import ru.t1.java.demo.model.dto.TransactionDto;
 public class KafkaTransactionProducer {
 
     @Autowired
-    private KafkaTemplate<String, TransactionDto> transactionDtoKafkaTemplate;
+    private final KafkaTemplate<String, TransactionDto> transactionDtoKafkaTemplate;
     @Value("${client_transactions_errors}")
-    private String clientTransactionErrorTopic;
+    private final String clientTransactionErrorTopic;
     @Value("${client_transactions}")
-    private String clientTransactionsTopic;
+    private final String clientTransactionsTopic;
 
 
     public void sendTransactionErrorMessage(TransactionDto transactionDto) {
         transactionDtoKafkaTemplate.send(clientTransactionErrorTopic, transactionDto.getTransactionId(), transactionDto);
     }
+
     public void sendTransactionMessage(TransactionDto transactionDto, String action) {
         Message<TransactionDto> message = MessageBuilder.withPayload(transactionDto)
                 .setHeader(KafkaHeaders.TOPIC, clientTransactionsTopic)

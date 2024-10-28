@@ -22,6 +22,8 @@ import java.util.Optional;
 public class ClientAccountServiceImpl implements ClientAccountService {
     private final ClientAccountRepository clientAccountRepository;
     private final ClientRepository clientRepository;
+    private final static String CLIENT_ACCOUNT_FAILURE_MESSAGE = "Счет клиента или клиент не найден";
+    private final static String WRONG_CLIENT_ACCOUNT_MESSAGE = "Счет клиента указан неверно";
 
     @Transactional
     @Override
@@ -31,11 +33,13 @@ public class ClientAccountServiceImpl implements ClientAccountService {
             throw new ClientException("Счет клиента уже существует");
         }
         if (clientAccount.getClient() == null || clientAccount.getClient().getId() == null) {
+            log.warn("Счет клиента указан неверно");
             throw new ClientException("Клиент не задан или имеет недопустимый идентификатор");
         }
         Optional<Client> clientOptional = clientRepository.findById(clientAccount.getClient().getId());
         if (clientOptional.isEmpty()) {
-            throw new ClientException("Клиент не найден");
+            log.warn("Счет клиента не найден");
+            throw new ClientException(CLIENT_ACCOUNT_FAILURE_MESSAGE);
         }
         Client client = clientOptional.get();
         client.addClientAccount(clientAccount);
@@ -47,12 +51,13 @@ public class ClientAccountServiceImpl implements ClientAccountService {
     @Override
     public void changeClientAccountType(Long clientAccountId) {
         if (clientAccountId == null) {
-            throw new ClientException("Счет клиента указан неверно");
+            log.warn("Счет клиента указан неверно");
+            throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
         }
         Optional<ClientAccount> accountOptional = clientAccountRepository.findById(clientAccountId);
         if (accountOptional.isEmpty()) {
             log.warn("Счет клиента не найден");
-            throw new ClientException("Счет клиента не найден");
+            throw new ClientException(CLIENT_ACCOUNT_FAILURE_MESSAGE);
         }
         ClientAccount clientAccount = accountOptional.get();
 
@@ -66,15 +71,17 @@ public class ClientAccountServiceImpl implements ClientAccountService {
         log.info("Тип счета изменен");
     }
 
+    @Transactional
     @Override
     public String blockClientAccount(Long clientAccountId) {
         if (clientAccountId == null) {
-            throw new ClientException("Счет клиента указан неверно");
+            log.warn("Счет клиента указан неверно");
+            throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
         }
         Optional<ClientAccount> accountOptional = clientAccountRepository.findById(clientAccountId);
         if (accountOptional.isEmpty()) {
             log.warn("Счет клиента не найден");
-            throw new ClientException("Счет клиента не найден");
+            throw new ClientException(CLIENT_ACCOUNT_FAILURE_MESSAGE);
         }
         ClientAccount clientAccount = accountOptional.get();
         String accountState = "ACTIVE";
@@ -93,12 +100,13 @@ public class ClientAccountServiceImpl implements ClientAccountService {
     @Override
     public boolean checkClientAccountStateById(Long accountId) {
         if (accountId == null) {
-            throw new ClientException("Счет клиента указан неверно");
+            log.warn("Счет клиента указан неверно");
+            throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
         }
         Optional<ClientAccount> accountOptional = clientAccountRepository.findAccountById(accountId);
         if (accountOptional.isEmpty()) {
             log.warn("Счет клиента не найден");
-            throw new ClientException("Счет клиента не найден");
+            throw new ClientException(CLIENT_ACCOUNT_FAILURE_MESSAGE);
         }
         ClientAccount clientAccount = accountOptional.get();
         String blocked = "BLOCKED";
@@ -112,7 +120,7 @@ public class ClientAccountServiceImpl implements ClientAccountService {
     public boolean executeTransactionOnClientAccount(Long accountId, BigDecimal executeAmount) {
         if (accountId == null) {
             log.warn("Счет клиента указан неверно");
-            throw new ClientException("Счет клиента указан неверно");
+            throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
         }
         Optional<ClientAccount> accountOptional = clientAccountRepository.findAccountById(accountId);
         if (accountOptional.isEmpty()) {
@@ -141,5 +149,46 @@ public class ClientAccountServiceImpl implements ClientAccountService {
     public Optional<ClientAccount> findByClientAccountId(Long accountId) {
         return clientAccountRepository.findAccountById(accountId);
 
+    }
+
+    @Transactional
+    @Override
+    public String unblockClientAccount(Long clientAccountId) {
+        if (clientAccountId == null) {
+            throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
+        }
+        Optional<ClientAccount> accountOptional = clientAccountRepository.findById(clientAccountId);
+        if (accountOptional.isEmpty()) {
+            log.warn("Счет клиента не найден");
+            throw new ClientException(CLIENT_ACCOUNT_FAILURE_MESSAGE);
+        }
+
+        ClientAccount clientAccount = accountOptional.get();
+        String blockedAccountState = "BLOCKED";
+        String debitAccountType = "DEBIT";
+        String creditAccountType = "CREDIT";
+        StringBuilder resultMessage = new StringBuilder("Счет с номером: ");
+
+        if (clientAccount.getClientAccountState().name().equals(blockedAccountState) &&
+                clientAccount.getClientAccountType().name().equals(debitAccountType)) {
+            clientAccount.setClientAccountState(ClientAccountState.ACTIVE);
+            resultMessage.append(clientAccountId).append(" успешно разблокирован");
+            clientAccountRepository.save(clientAccount);
+            log.info("Счет клиента разблокирован");
+        } else if (clientAccount.getClientAccountState().name().equals(blockedAccountState) &&
+                clientAccount.getClientAccountType().name().equals(creditAccountType)) {
+            BigDecimal creditAccountTypeBalance = clientAccount.getBalance();
+            if (creditAccountTypeBalance.signum() > 0) {
+                clientAccount.setClientAccountState(ClientAccountState.ACTIVE);
+                resultMessage.append(clientAccountId).append(" успешно разблокирован");
+                clientAccountRepository.save(clientAccount);
+                log.info("Счет клиента разблокирован");
+            } else {
+                resultMessage.append(clientAccountId).append(" имеет отрицательный баланс и не может быть разблокирован");
+            }
+        } else {
+            resultMessage.append(clientAccountId).append(" уже разблокирован");
+        }
+        return resultMessage.toString();
     }
 }

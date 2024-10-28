@@ -6,4 +6,6 @@ public interface TransactionService {
     void saveTransaction(Transaction transaction);
 
     void deleteTransaction(Transaction transaction);
+
+    void correctionTransaction(Transaction transaction);
 }

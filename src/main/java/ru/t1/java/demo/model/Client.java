@@ -1,16 +1,7 @@
 package ru.t1.java.demo.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.ArrayList;
@@ -36,6 +27,7 @@ public class Client extends AbstractPersistable<Long> {
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<ClientAccount> accounts = new ArrayList<>();
+
     public void addClientAccount(ClientAccount clientAccount) {
         if (accounts == null) {
             accounts = new ArrayList<>();
@@ -43,6 +35,7 @@ public class Client extends AbstractPersistable<Long> {
         this.accounts.add(clientAccount);
         clientAccount.setClient(this);
     }
+
     public void removeClientAccount(ClientAccount clientAccount) {
         accounts.remove(clientAccount);
         clientAccount.setClient(null);

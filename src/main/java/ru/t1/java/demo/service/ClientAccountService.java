@@ -17,4 +17,6 @@ public interface ClientAccountService {
     boolean executeTransactionOnClientAccount(Long accountId, BigDecimal executeAmount);
 
     Optional<ClientAccount> findByClientAccountId(Long accountId);
+
+    String unblockClientAccount(Long clientAccountId);
 }

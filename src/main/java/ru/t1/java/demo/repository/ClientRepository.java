@@ -1,12 +1,13 @@
 package ru.t1.java.demo.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.t1.java.demo.aop.Transaction;
 import ru.t1.java.demo.model.Client;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED;
@@ -21,4 +22,6 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     Client findClientByFirstName(String firstName);
 
     Client save(Client client);
+
+    Page<Client> findAll(Pageable pageable);
 }

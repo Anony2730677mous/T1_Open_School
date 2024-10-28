@@ -2,7 +2,6 @@ package ru.t1.java.demo.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.t1.java.demo.mapper.ClientAccountMapper;
 import ru.t1.java.demo.model.dto.ClientAccountDto;
@@ -28,7 +27,7 @@ public class ClientAccountController {
     Изменение типа счета клиента с кредитного на дебитовый и наоборот
      */
     @PatchMapping("/set-debit-credit-account-type")
-    public ResponseDto setNewAccountType(@PathVariable Long clientAccountId){
+    public ResponseDto setNewAccountType(@PathVariable Long clientAccountId) {
         clientAccountService.changeClientAccountType(clientAccountId);
         log.info("Тип счета клиента изменен");
         return new ResponseDto(String.format("Тип счёта клиента c номером: {%s} успешно изменен", clientAccountId));
@@ -40,6 +39,13 @@ public class ClientAccountController {
         String blockedMessage = clientAccountService.blockClientAccount(clientAccountId);
         log.info("Счета клиента заблокирован");
         return new ResponseDto(String.format(blockedMessage));
+    }
+
+    @PatchMapping("/unblock-account")
+    public ResponseDto unblockClientAccount(@PathVariable Long clientAccountId) {
+        String unblockedMessage = clientAccountService.unblockClientAccount(clientAccountId);
+        log.info("Счета клиента разблокирован");
+        return new ResponseDto(String.format(unblockedMessage));
     }
 
 

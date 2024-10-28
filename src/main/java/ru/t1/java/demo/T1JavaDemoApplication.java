@@ -8,11 +8,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.sql.DataSource;
 
 @SpringBootApplication
 //@EnableAspectJAutoProxy
+@EnableScheduling
 @EnableConfigurationProperties
 @Slf4j
 public class T1JavaDemoApplication {
