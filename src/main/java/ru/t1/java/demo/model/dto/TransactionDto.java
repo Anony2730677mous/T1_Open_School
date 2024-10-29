@@ -26,4 +26,11 @@ public class TransactionDto {
 
     @JsonProperty("transaction_Id")
     private String transactionId;
+
+    @JsonProperty("transaction_action")
+    private String transactionAction;
+
+    @JsonProperty("transaction_state")
+    private String transactionState;
+
 }

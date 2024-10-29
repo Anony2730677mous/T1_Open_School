@@ -26,11 +26,12 @@ public class KafkaTransactionCorrectionConsumer {
     public void clientTransactionErrorsListener(@Payload TransactionDto transactionDto,
                                                 Acknowledgment ack,
                                                 @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                                @Header(KafkaHeaders.RECEIVED_KEY) String key) {
+                                                @Header(KafkaHeaders.RECEIVED_KEY) String key,
+                                                @Header("action") String action) {
         try {
             log.info("Сообщение получено из топика: {}, с ключом: {}", topic, key);
             Transaction transaction = transactionMapper.toEntity(transactionDto);
-            transactionService.correctionTransaction(transaction);
+            transactionService.correctionTransaction(transaction, action);
         } catch (Exception e) {
             log.error("Произошла ошибка при корректировке транзакции: {}", e.getMessage());
         } finally {

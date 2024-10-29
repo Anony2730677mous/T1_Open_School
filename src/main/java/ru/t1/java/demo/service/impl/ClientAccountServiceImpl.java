@@ -2,6 +2,9 @@ package ru.t1.java.demo.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.t1.java.demo.exception.ClientException;
@@ -24,6 +27,7 @@ public class ClientAccountServiceImpl implements ClientAccountService {
     private final ClientRepository clientRepository;
     private final static String CLIENT_ACCOUNT_FAILURE_MESSAGE = "Счет клиента или клиент не найден";
     private final static String WRONG_CLIENT_ACCOUNT_MESSAGE = "Счет клиента указан неверно";
+    private final Integer pageCount = 100;
 
     @Transactional
     @Override
@@ -190,5 +194,34 @@ public class ClientAccountServiceImpl implements ClientAccountService {
             resultMessage.append(clientAccountId).append(" уже разблокирован");
         }
         return resultMessage.toString();
+    }
+
+    @Transactional
+    @Override
+    public void blockNegativeBalanceCreditClientAccounts() {
+        Pageable pageable = PageRequest.of(0, pageCount);
+        Page<Client> clientPage;
+
+        do {
+            clientPage = clientRepository.findAll(pageable);
+            if (clientPage.isEmpty()) {
+                log.info("Список клиентов пуст на странице {}", pageable.getPageNumber());
+                break;
+            }
+            clientPage.getContent().stream()
+                    .flatMap(client -> client.getAccounts().stream())
+                    .filter(account -> account.getClientAccountType() == ClientAccountType.CREDIT)
+                    .filter(account -> account.getClientAccountState() == ClientAccountState.ACTIVE)
+                    .filter(account -> account.getBalance().compareTo(BigDecimal.ZERO) < 0)
+                    .forEach(account -> {
+                        account.setClientAccountState(ClientAccountState.BLOCKED);
+                        clientAccountRepository.save(account);
+                        log.info("Счет с ID {} заблокирован из-за отрицательного баланса", account.getId());
+                    });
+
+            pageable = clientPage.nextPageable();
+        } while (clientPage.hasNext());
+
+
     }
 }

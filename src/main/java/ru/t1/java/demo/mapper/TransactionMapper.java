@@ -3,6 +3,7 @@ package ru.t1.java.demo.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
+import ru.t1.java.demo.model.CorrectionTransaction;
 import ru.t1.java.demo.model.Transaction;
 import ru.t1.java.demo.model.dto.TransactionDto;
 
@@ -12,4 +13,6 @@ public interface TransactionMapper {
     Transaction toEntity(TransactionDto transactionDto);
 
     TransactionDto toDto(Transaction transaction);
+
+    TransactionDto toDto(CorrectionTransaction transaction);
 }

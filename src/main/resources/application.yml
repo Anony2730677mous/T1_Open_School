@@ -57,3 +57,14 @@ track:
   db:
     enabled: false
   time-limit-exceed: 1000
+
+
+scheduling:
+  cron:
+    transactions: "0 0 6-22/2 * * ?"
+    block-negative-balance: "0 0 2 * * ?"
+
+alias:
+  api:
+    transactions: "/api/v1/transactions-service"
+    accounts: "/api/v1/account-service"

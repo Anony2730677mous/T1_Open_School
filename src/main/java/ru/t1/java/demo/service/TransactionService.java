@@ -7,5 +7,7 @@ public interface TransactionService {
 
     void deleteTransaction(Transaction transaction);
 
-    void correctionTransaction(Transaction transaction);
+    void correctionTransaction(Transaction transaction, String action);
+
+    void processingListOfCorrectionTransactions();
 }

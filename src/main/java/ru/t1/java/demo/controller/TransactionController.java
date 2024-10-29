@@ -17,6 +17,7 @@ public class TransactionController {
     @PatchMapping("/execute-transaction")
     public ResponseDto executeTransaction(@RequestBody TransactionDto transactionDto, @RequestParam String action) {
         kafkaTransactionProducer.sendTransactionMessage(transactionDto, action);
+        log.info("Выполняется транзакция с номером {}", transactionDto.getTransactionId());
         return new ResponseDto("Начато выполнение транзакции");
     }
 }

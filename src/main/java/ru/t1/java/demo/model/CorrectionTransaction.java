@@ -1,8 +1,6 @@
 package ru.t1.java.demo.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -28,5 +26,13 @@ public class CorrectionTransaction extends AbstractPersistable<Long> {
 
     @Column(name = "transaction_id", nullable = false)
     private String transactionId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_action", nullable = false)
+    private TransactionActionType transactionActionType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_state", nullable = false)
+    private TransactionStateType transactionStateType;
 
 }

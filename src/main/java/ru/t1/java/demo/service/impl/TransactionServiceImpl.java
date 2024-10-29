@@ -2,6 +2,9 @@ package ru.t1.java.demo.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,6 +14,8 @@ import ru.t1.java.demo.kafka.KafkaTransactionProducer;
 import ru.t1.java.demo.mapper.TransactionMapper;
 import ru.t1.java.demo.model.CorrectionTransaction;
 import ru.t1.java.demo.model.Transaction;
+import ru.t1.java.demo.model.TransactionActionType;
+import ru.t1.java.demo.model.TransactionStateType;
 import ru.t1.java.demo.repository.CorrectionTransactionRepository;
 import ru.t1.java.demo.repository.TransactionRepository;
 import ru.t1.java.demo.service.ClientAccountService;
@@ -31,14 +36,23 @@ public class TransactionServiceImpl implements TransactionService {
     private final CorrectionTransactionRepository correctionTransactionRepository;
     private final static String CLIENT_ACCOUNT_BLOCKED_MESSAGE = "Счет закрыт или заблокирован. Транзакция не может быть сохранена.";
     private final static String TRANSACTION_FAILURE_MESSAGE = "Транзакция не выполнена";
+    private final static String CREATE = "CREATE";
+    private final static String DELETE = "DELETE";
+    private final static String DONE = "DONE";
+    private final Integer pageCount = 100;
+
 
     @Override
     @Transactional
     public void saveTransaction(Transaction transaction) {
         if (transaction.getTransactionId() == null) {
+            log.warn("Транзакция без id");
             throw new TransactionException("Транзакция не может быть сохранена без идентификатора");
         }
-        if (transactionRepository.findByTransactionalId(transaction.getTransactionId()).isPresent()) {
+        Optional<Transaction> existingTransactionOptional = transactionRepository
+                .findByTransactionalId(transaction.getTransactionId());
+        if (existingTransactionOptional.isPresent() &&
+                DONE.equalsIgnoreCase(String.valueOf(transaction.getTransactionStateType()))) {
             log.info("Транзакция с id {} уже существует и будет пропущена", transaction.getTransactionId());
             throw new TransactionException("Транзакция уже выполнена");
         }
@@ -46,12 +60,14 @@ public class TransactionServiceImpl implements TransactionService {
         Long accountId = transaction.getAccountId();
         boolean isBlocked = checkAccountById(accountId);
         if (isBlocked) {
-            kafkaTransactionProducer.sendTransactionErrorMessage(transactionMapper.toDto(transaction));
+            kafkaTransactionProducer.sendTransactionErrorMessage(transactionMapper.toDto(transaction), CREATE);
+            log.warn("Транзакция с id {} направлена в сервис корректировки", transaction.getTransactionId());
             throw new TransactionException(CLIENT_ACCOUNT_BLOCKED_MESSAGE);
         } else {
             BigDecimal executeAmount = transaction.getAmount();
             boolean transactionIsDone = executeTransactionOnAccount(accountId, executeAmount);
             if (transactionIsDone) {
+                transaction.setTransactionStateType(TransactionStateType.DONE);
                 transactionRepository.save(transaction);
                 log.info("Выполнена транзакция с id: " + transaction.getTransactionId());
             } else {
@@ -66,11 +82,13 @@ public class TransactionServiceImpl implements TransactionService {
     public void deleteTransaction(Transaction transaction) {
         Optional<Transaction> existingTransactionOptional = transactionRepository
                 .findByTransactionalId(transaction.getTransactionId());
-        if (existingTransactionOptional.isPresent()) {
+        if (existingTransactionOptional.isPresent() &&
+                DONE.equalsIgnoreCase(String.valueOf(transaction.getTransactionStateType()))) {
             Long accountId = transaction.getAccountId();
             boolean isBlocked = checkAccountById(accountId);
             if (isBlocked) {
-                kafkaTransactionProducer.sendTransactionErrorMessage(transactionMapper.toDto(transaction));
+                kafkaTransactionProducer.sendTransactionErrorMessage(transactionMapper.toDto(transaction), DELETE);
+                log.warn("Транзакция с id {} направлена в сервис корректировки", transaction.getTransactionId());
                 throw new TransactionException(CLIENT_ACCOUNT_BLOCKED_MESSAGE);
             }
 
@@ -103,31 +121,48 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Transactional
     @Override
-    public void correctionTransaction(Transaction transaction) {
-        Optional<Transaction> existingTransactionOptional = transactionRepository
-                .findByTransactionalId(transaction.getTransactionId());
-        if (existingTransactionOptional.isPresent()) {
-            Long accountId = transaction.getAccountId();
-            boolean isBlocked = checkAccountById(accountId);
+    public void correctionTransaction(Transaction transaction, String action) {
+        if (transaction.getTransactionId() == null) {
+            log.warn("Транзакция без id");
+            throw new TransactionException("Транзакция не может быть обработана без идентификатора");
+        }
+
+        Optional<CorrectionTransaction> existingCorrrectionTransactionOptional = correctionTransactionRepository
+                .findByCorrectionalTransactionalId(transaction.getTransactionId());
+        Long accountId = transaction.getAccountId();
+        boolean isBlocked = checkAccountById(accountId);
+        if (existingCorrrectionTransactionOptional.isPresent()) {
             if (isBlocked) {
                 boolean isUnblock = callingClientAccountUnblock(accountId);
                 if (isUnblock) {
-                    transactionRepository.deleteById(Long.valueOf(existingTransactionOptional.get().getTransactionId()));
-                    log.info("Транзакция с id {} успешно удалена", transaction.getTransactionId());
+                    correctionTransactionRepository.deleteById(Long.valueOf(existingCorrrectionTransactionOptional.get().getTransactionId()));
+                    log.info("Транзакция с id {} успешно удалена из таблицы correction_transaction", transaction.getTransactionId());
+                } else {
+                    log.info("Счет после запроса на разблокировку не был разблокирован");
+                }
+            } else {
+                log.info("Счет перед запросом на разблокировку уже был разблокирован");
+            }
+        } else {
+            if (isBlocked) {
+                boolean isUnblock = callingClientAccountUnblock(accountId);
+                if (isUnblock) {
+                    log.info("Счет после запроса на разблокировку был разблокирован");
                 } else {
                     CorrectionTransaction correctionTransaction = CorrectionTransaction.builder()
                             .amount(transaction.getAmount())
                             .clientId(transaction.getClientId())
                             .accountId(transaction.getAccountId())
                             .transactionId(transaction.getTransactionId())
+                            .transactionActionType(TransactionActionType.valueOf(action))
+                            .transactionStateType(transaction.getTransactionStateType())
                             .build();
                     correctionTransactionRepository.save(correctionTransaction);
                     log.info("Транзакция с id {} сохранена в таблицу correction_transaction", transaction.getTransactionId());
                 }
+            } else {
+                log.info("Счет перед запросом на разблокировку уже был разблокирован");
             }
-        } else {
-            log.warn("Транзакция с id {} не найдена", transaction.getTransactionId());
-            throw new TransactionException("Транзакция не найдена");
         }
 
     }
@@ -162,5 +197,27 @@ public class TransactionServiceImpl implements TransactionService {
 
     private boolean checkAccountById(Long accountId) {
         return clientAccountService.checkClientAccountStateById(accountId);
+    }
+
+    @Override
+    public void processingListOfCorrectionTransactions() {
+        Pageable pageable = PageRequest.of(0, pageCount);
+        Page<CorrectionTransaction> transactionsPage;
+
+        do {
+            transactionsPage = correctionTransactionRepository.findAll(pageable);
+            if (transactionsPage.isEmpty()) {
+                log.info("Список транзакций пуст на странице {}", pageable.getPageNumber());
+                break;
+            }
+            transactionsPage.getContent().stream()
+                    .forEach(transaction -> {
+                        kafkaTransactionProducer.
+                                sendTransactionMessage(transactionMapper.toDto(transaction), transaction.getTransactionActionType().name());
+                        log.info("Транзакция с ID {} отправлена на повторную обработку", transaction.getTransactionId());
+                    });
+
+            pageable = transactionsPage.nextPageable();
+        } while (transactionsPage.hasNext());
     }
 }

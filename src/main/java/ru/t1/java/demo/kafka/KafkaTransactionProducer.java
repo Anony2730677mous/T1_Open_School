@@ -24,8 +24,13 @@ public class KafkaTransactionProducer {
     private final String clientTransactionsTopic;
 
 
-    public void sendTransactionErrorMessage(TransactionDto transactionDto) {
-        transactionDtoKafkaTemplate.send(clientTransactionErrorTopic, transactionDto.getTransactionId(), transactionDto);
+    public void sendTransactionErrorMessage(TransactionDto transactionDto, String action) {
+        Message<TransactionDto> message = MessageBuilder.withPayload(transactionDto)
+                .setHeader(KafkaHeaders.TOPIC, clientTransactionErrorTopic)
+                .setHeader(KafkaHeaders.KEY, transactionDto.getTransactionId())
+                .setHeader("action", action)
+                .build();
+        transactionDtoKafkaTemplate.send(message);
     }
 
     public void sendTransactionMessage(TransactionDto transactionDto, String action) {

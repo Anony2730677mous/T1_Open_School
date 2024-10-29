@@ -1,5 +1,6 @@
 package ru.t1.java.demo.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import ru.t1.java.demo.model.ClientAccount;
 
 import java.math.BigDecimal;
@@ -19,4 +20,7 @@ public interface ClientAccountService {
     Optional<ClientAccount> findByClientAccountId(Long accountId);
 
     String unblockClientAccount(Long clientAccountId);
+
+    @Transactional
+    void blockNegativeBalanceCreditClientAccounts();
 }
