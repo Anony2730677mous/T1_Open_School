@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,6 +23,7 @@ import ru.t1.java.demo.repository.CorrectionTransactionRepository;
 import ru.t1.java.demo.repository.TransactionRepository;
 import ru.t1.java.demo.service.ClientAccountService;
 import ru.t1.java.demo.service.TransactionService;
+import ru.t1.java.demo.util.JwtUtils;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -34,6 +38,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final WebClient webClient;
     private final CorrectionTransactionRepository correctionTransactionRepository;
+    private final JwtUtils jwtUtils;
     private final static String CLIENT_ACCOUNT_BLOCKED_MESSAGE = "Счет закрыт или заблокирован. Транзакция не может быть сохранена.";
     private final static String TRANSACTION_FAILURE_MESSAGE = "Транзакция не выполнена";
     private final static String CREATE = "CREATE";
@@ -168,9 +173,17 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private boolean callingClientAccountUnblock(Long accountId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            log.info("Ошибка во время процесса аутентификации в методе callingClientAccountUnblock");
+            throw new IllegalStateException("Не удалось получить контекст аутентификации");
+        }
+
+        String jwtToken = jwtUtils.generateJwtToken(authentication);
         try {
             String response = webClient.patch()
                     .uri("/api/accounts/unblock-account/{id}", accountId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
@@ -183,10 +196,10 @@ public class TransactionServiceImpl implements TransactionService {
                 throw new TransactionException(TRANSACTION_FAILURE_MESSAGE);
             }
         } catch (WebClientResponseException e) {
-            System.err.println("Ошибка HTTP: " + e.getMessage());
+            log.warn("Ошибка HTTP: " + e.getMessage());
             return false;
         } catch (Exception e) {
-            System.err.println("Ошибка при выполнении запроса на разблокировку счета: " + e.getMessage());
+            log.warn("Ошибка при выполнении запроса на разблокировку счета: " + e.getMessage());
             return false;
         }
     }

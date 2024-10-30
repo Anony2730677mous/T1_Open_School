@@ -61,7 +61,7 @@ track:
 
 scheduling:
   cron:
-    transactions: "0 0 6-22/2 * * ?"
+    transactions: "0 0 6-23 * * ?"
     block-negative-balance: "0 0 2 * * ?"
 
 alias:

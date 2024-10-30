@@ -2,6 +2,7 @@ package ru.t1.java.demo.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.t1.java.demo.mapper.ClientAccountMapper;
 import ru.t1.java.demo.model.dto.ClientAccountDto;
@@ -11,6 +12,7 @@ import ru.t1.java.demo.service.ClientAccountService;
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("${alias.api.accounts}")
+@PreAuthorize("hasRole('MODERATOR')")
 public class ClientAccountController {
     private final ClientAccountService clientAccountService;
     private final ClientAccountMapper clientAccountMapper;
@@ -26,7 +28,7 @@ public class ClientAccountController {
     /*
     Изменение типа счета клиента с кредитного на дебитовый и наоборот
      */
-    @PatchMapping("/set-debit-credit-account-type")
+    @PatchMapping("/set-debit-credit-account-type/{clientAccountId}")
     public ResponseDto setNewAccountType(@PathVariable Long clientAccountId) {
         clientAccountService.changeClientAccountType(clientAccountId);
         log.info("Тип счета клиента изменен");
@@ -34,17 +36,17 @@ public class ClientAccountController {
 
     }
 
-    @PatchMapping("/block-account")
+    @PatchMapping("/block-account/{clientAccountId}")
     public ResponseDto blockClientAccount(@PathVariable Long clientAccountId) {
         String blockedMessage = clientAccountService.blockClientAccount(clientAccountId);
-        log.info("Счета клиента заблокирован");
+        log.info("Счет клиента заблокирован");
         return new ResponseDto(String.format(blockedMessage));
     }
 
-    @PatchMapping("/unblock-account")
+    @PatchMapping("/unblock-account/{clientAccountId}")
     public ResponseDto unblockClientAccount(@PathVariable Long clientAccountId) {
         String unblockedMessage = clientAccountService.unblockClientAccount(clientAccountId);
-        log.info("Счета клиента разблокирован");
+        log.info("Счет клиента разблокирован");
         return new ResponseDto(String.format(unblockedMessage));
     }
 
