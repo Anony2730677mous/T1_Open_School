@@ -1,10 +1,8 @@
 package ru.t1.java.demo.service;
 
-import org.springframework.transaction.annotation.Transactional;
 import ru.t1.java.demo.model.ClientAccount;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 public interface ClientAccountService {
     void saveAccount(ClientAccount clientAccount);
@@ -17,10 +15,7 @@ public interface ClientAccountService {
 
     boolean executeTransactionOnClientAccount(Long accountId, BigDecimal executeAmount);
 
-    Optional<ClientAccount> findByClientAccountId(Long accountId);
-
     String unblockClientAccount(Long clientAccountId);
 
-    @Transactional
     void blockNegativeBalanceCreditClientAccounts();
 }

@@ -86,7 +86,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public void deleteTransaction(Transaction transaction) {
         Optional<Transaction> existingTransactionOptional = transactionRepository
-                .findByTransactionalId(transaction.getTransactionId());
+                .findTransactionalByIdForUpdate(transaction.getTransactionId());
         if (existingTransactionOptional.isPresent() &&
                 DONE.equalsIgnoreCase(String.valueOf(transaction.getTransactionStateType()))) {
             Long accountId = transaction.getAccountId();
@@ -176,7 +176,7 @@ public class TransactionServiceImpl implements TransactionService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             log.info("Ошибка во время процесса аутентификации в методе callingClientAccountUnblock");
-            throw new IllegalStateException("Не удалось получить контекст аутентификации");
+            throw new IllegalStateException("Не удалось выполнить аутентификацию");
         }
 
         String jwtToken = jwtUtils.generateJwtToken(authentication);

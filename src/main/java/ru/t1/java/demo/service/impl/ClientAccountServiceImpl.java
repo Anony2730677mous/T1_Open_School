@@ -58,7 +58,7 @@ public class ClientAccountServiceImpl implements ClientAccountService {
             log.warn("Счет клиента указан неверно");
             throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
         }
-        Optional<ClientAccount> accountOptional = clientAccountRepository.findById(clientAccountId);
+        Optional<ClientAccount> accountOptional = clientAccountRepository.findAccountByIdForUpdate(clientAccountId);
         if (accountOptional.isEmpty()) {
             log.warn("Счет клиента не найден");
             throw new ClientException(CLIENT_ACCOUNT_FAILURE_MESSAGE);
@@ -82,7 +82,7 @@ public class ClientAccountServiceImpl implements ClientAccountService {
             log.warn("Счет клиента указан неверно");
             throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
         }
-        Optional<ClientAccount> accountOptional = clientAccountRepository.findById(clientAccountId);
+        Optional<ClientAccount> accountOptional = clientAccountRepository.findAccountByIdForUpdate(clientAccountId);
         if (accountOptional.isEmpty()) {
             log.warn("Счет клиента не найден");
             throw new ClientException(CLIENT_ACCOUNT_FAILURE_MESSAGE);
@@ -126,7 +126,7 @@ public class ClientAccountServiceImpl implements ClientAccountService {
             log.warn("Счет клиента указан неверно");
             throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
         }
-        Optional<ClientAccount> accountOptional = clientAccountRepository.findAccountById(accountId);
+        Optional<ClientAccount> accountOptional = clientAccountRepository.findAccountByIdForUpdate(accountId);
         if (accountOptional.isEmpty()) {
             log.warn("Счет клиента не найден");
             return false;
@@ -149,11 +149,6 @@ public class ClientAccountServiceImpl implements ClientAccountService {
 
     }
 
-    @Override
-    public Optional<ClientAccount> findByClientAccountId(Long accountId) {
-        return clientAccountRepository.findAccountById(accountId);
-
-    }
 
     @Transactional
     @Override
@@ -161,7 +156,7 @@ public class ClientAccountServiceImpl implements ClientAccountService {
         if (clientAccountId == null) {
             throw new ClientException(WRONG_CLIENT_ACCOUNT_MESSAGE);
         }
-        Optional<ClientAccount> accountOptional = clientAccountRepository.findById(clientAccountId);
+        Optional<ClientAccount> accountOptional = clientAccountRepository.findAccountByIdForUpdate(clientAccountId);
         if (accountOptional.isEmpty()) {
             log.warn("Счет клиента не найден");
             throw new ClientException(CLIENT_ACCOUNT_FAILURE_MESSAGE);
