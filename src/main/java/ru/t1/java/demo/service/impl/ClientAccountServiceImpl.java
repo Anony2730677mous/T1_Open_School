@@ -145,8 +145,6 @@ public class ClientAccountServiceImpl implements ClientAccountService {
             log.info("Баланс счета c номером: {} был успешно изменен", clientAccount.getId());
             return true;
         }
-
-
     }
 
 

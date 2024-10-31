@@ -14,6 +14,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Table(name = "client_account")
 public class ClientAccount extends AbstractPersistable<Long> {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id")
@@ -29,5 +32,4 @@ public class ClientAccount extends AbstractPersistable<Long> {
     @Enumerated(EnumType.STRING)
     @Column(name = "account_state", nullable = false)
     private ClientAccountState clientAccountState;
-
 }
