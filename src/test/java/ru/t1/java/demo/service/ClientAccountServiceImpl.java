@@ -234,7 +234,6 @@ class ClientAccountServiceImplTest {
 
     @Test
     public void testUnblockClientAccount_SuccessDebitAccount() {
-        // Настройка mock объектов для возврата заблокированного дебетового счета
         clientAccount.setClientAccountState(ClientAccountState.BLOCKED);
         clientAccount.setClientAccountType(ClientAccountType.DEBIT);
 
@@ -250,7 +249,6 @@ class ClientAccountServiceImplTest {
 
     @Test
     public void testUnblockClientAccount_SuccessCreditAccountWithPositiveBalance() {
-        // Настройка mock объектов для возврата заблокированного кредитного счета с положительным балансом
         clientAccount.setClientAccountState(ClientAccountState.BLOCKED);
         clientAccount.setClientAccountType(ClientAccountType.CREDIT);
         clientAccount.setBalance(BigDecimal.valueOf(1000));

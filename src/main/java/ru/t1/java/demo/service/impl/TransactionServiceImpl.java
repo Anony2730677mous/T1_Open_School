@@ -172,7 +172,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     }
 
-    private boolean callingClientAccountUnblock(Long accountId) {
+    public boolean callingClientAccountUnblock(Long accountId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             log.info("Ошибка во время процесса аутентификации в методе callingClientAccountUnblock");
