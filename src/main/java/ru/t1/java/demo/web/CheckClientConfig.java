@@ -14,12 +14,13 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
+
 import java.time.Duration;
+
 @Configuration
 @RequiredArgsConstructor
 public class CheckClientConfig {
     @Value("${integration.url}")
-
     private String url;
 
 
@@ -33,7 +34,6 @@ public class CheckClientConfig {
             .build();
 
     @Bean
-
     public CheckWebClient checkWebClient(ClientHttp clientHttp) {
         WebClient.Builder webClient = WebClient.builder();
         webClient
@@ -43,38 +43,25 @@ public class CheckClientConfig {
     }
 
 
-
     @Bean
-
     ClientHttp getClientHttp() {
-
         return new ClientHttp();
-
     }
 
 
     public class ClientHttp {
-
         @SneakyThrows
-
         public ClientHttpConnector getClientHttp(String nameLogClass) {
 
             SslContext sslContext = SslContextBuilder
-
                     .forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
-
 
             return new ReactorClientHttpConnector(HttpClient
 
                     .create()
-
                     .create(connProvider)
-
                     .secure(t -> t.sslContext(sslContext))
-
                     .resolver(DefaultAddressResolverGroup.INSTANCE));
-
         }
-
     }
 }

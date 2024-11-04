@@ -2,9 +2,9 @@ spring:
   application:
     name: t1-java-demo
   datasource:
-    jdbcUrl: jdbc:postgresql://localhost:5432/t1_demo
+    jdbcUrl: jdbc:postgresql://localhost:5432/postgres
     username: postgres
-    password: "0000"
+    password: qwerty
     driverClassName: org.postgresql.Driver
   liquibase:
     enabled: true
@@ -12,9 +12,9 @@ spring:
     change-log: db/changelog/db.changelog-master.xml
     driver-class-name: org.postgresql.Driver
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/t1_demo
+    url: jdbc:postgresql://localhost:5432/postgres
     user: postgres
-    password: "0000"
+    password: qwerty
 security:
   token: tstrs4g434wyhser5htstrs4g434wyhser5htstrs4g434wyhser5htstrs4g434wyhser5htstrs4g434wyhser5h
   expiration: 86400000

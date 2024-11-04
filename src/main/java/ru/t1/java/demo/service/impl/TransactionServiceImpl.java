@@ -19,11 +19,13 @@ import ru.t1.java.demo.model.CorrectionTransaction;
 import ru.t1.java.demo.model.Transaction;
 import ru.t1.java.demo.model.TransactionActionType;
 import ru.t1.java.demo.model.TransactionStateType;
+import ru.t1.java.demo.model.dto.CheckResponse;
 import ru.t1.java.demo.repository.CorrectionTransactionRepository;
 import ru.t1.java.demo.repository.TransactionRepository;
 import ru.t1.java.demo.service.ClientAccountService;
 import ru.t1.java.demo.service.TransactionService;
 import ru.t1.java.demo.util.JwtUtils;
+import ru.t1.java.demo.web.CheckWebClient;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -39,6 +41,8 @@ public class TransactionServiceImpl implements TransactionService {
     private final WebClient webClient;
     private final CorrectionTransactionRepository correctionTransactionRepository;
     private final JwtUtils jwtUtils;
+    private final CheckWebClient checkWebClient;
+
     private final static String CLIENT_ACCOUNT_BLOCKED_MESSAGE = "Счет закрыт или заблокирован. Транзакция не может быть сохранена.";
     private final static String TRANSACTION_FAILURE_MESSAGE = "Транзакция не выполнена";
     private final static String CREATE = "CREATE";
@@ -232,5 +236,20 @@ public class TransactionServiceImpl implements TransactionService {
 
             pageable = transactionsPage.nextPageable();
         } while (transactionsPage.hasNext());
+    }
+
+    public boolean permissionToMakeTransaction(Transaction transaction) {
+        log.info("Проверка разрешения на транзакцию для clientId: {}", transaction.getClientId());
+
+        Optional<CheckResponse> response = checkWebClient.check(transaction.getClientId());
+        if (response.isPresent()) {
+            Boolean isBlocked = response.get().getBlocked();
+            boolean isAllowed = !isBlocked;
+            log.debug("Разрешение на транзакцию: {}", isAllowed);
+            return isAllowed;
+        } else {
+            log.warn("Ошибка при проверке разрешения на транзакцию");
+            return false;
+        }
     }
 }

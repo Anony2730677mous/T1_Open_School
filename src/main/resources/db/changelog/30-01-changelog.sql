@@ -1,5 +1,6 @@
 -- liquibase formatted sql
-
+-- changeset e_cha:1727702549313-0
+CREATE SCHEMA IF NOT EXISTS t1_demo;
 -- changeset e_cha:1727702549313-1
 CREATE SEQUENCE IF NOT EXISTS role_seq START WITH 1 INCREMENT BY 50;
 
